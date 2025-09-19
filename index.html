@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Adventure Island - Enhanced</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .ui-panel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+        
+        #score {
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #lives {
+            font-size: 24px;
+            color: #FF69B4;
+            display: flex;
+            gap: 5px;
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        
+        #gameOverScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        #winScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            z-index: 200;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            animation: celebration 1s ease-in-out infinite;
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+        
+        #winScreen h2 {
+            font-size: 48px;
+            margin: 10px 0;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #musicToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s;
+        }
+        
+        #musicToggle:hover {
+            transform: scale(1.1);
+        }
+        
+        #musicToggle.muted {
+            background: rgba(255, 0, 0, 0.3);
+        }
+        
+        #gameOverScreen h2 {
+            font-size: 48px;
+            margin: 10px 0;
+            color: #FF4444;
+        }
+        
+        #finalScore {
+            font-size: 32px;
+            color: #FFD700;
+            margin: 20px 0;
+        }
+        
+        #bestTime {
+            font-size: 24px;
+            color: #00FF00;
+            margin: 10px 0;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid white;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            touch-action: none;
+            backdrop-filter: blur(5px);
+        }
+        
+        #jumpBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            z-index: 100;
+            display: none;
+            background: rgba(255, 105, 180, 0.5);
+        }
+        
+        .heart {
+            display: inline-block;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameUI">
+        <div class="ui-panel">
+            <div id="score">Score: 0</div>
+            <div id="lives">Lives: <span id="livesDisplay"></span></div>
+        </div>
+        <div class="ui-panel">
+            <div style="color: #FFD700; font-size: 20px;">Level <span id="levelDisplay">1</span></div>
+            <div id="timer">Time Left: 05:00</div>
+            <div style="color: #00FF00; font-size: 18px;">Best: <span id="bestTimeDisplay">--:--</span></div>
+        </div>
+    </div>
+    
+    <div id="instructions">
+        WASD/Arrows to move • Space to jump • Avoid enemies & bombs!<br>
+        Collect all gems • Find the secret waterfall area!
+    </div>
+    
+    <div id="gameOverScreen">
+        <h2 id="gameOverTitle">GAME OVER</h2>
+        <div id="finalScore"></div>
+        <div id="bestTime"></div>
+        <button class="restart-btn" onclick="restartGame()">PLAY AGAIN</button>
+    </div>
+    
+    <div id="winScreen">
+        <h2 id="winTitle">🎉 LEVEL COMPLETE! 🎉</h2>
+        <div id="winMessage" style="font-size: 32px; color: #FFD700; margin: 20px 0;">ALL GEMS COLLECTED!</div>
+        <div id="winTime" style="font-size: 24px; margin: 10px 0;"></div>
+        <div id="winScore" style="font-size: 28px; color: #00FF00; margin: 10px 0;"></div>
+        <button class="restart-btn" id="continueBtn" onclick="nextLevel()">CONTINUE TO LEVEL 2</button>
+        <button class="restart-btn" onclick="restartGame()" style="margin-top: 10px;">RESTART GAME</button>
+    </div>
+    
+    <button id="musicToggle" onclick="toggleMusic()">🎵</button>
+    
+    <div id="mobileControls">
+        <table>
+            <tr>
+                <td></td>
+                <td><button class="control-btn" data-key="up">↑</button></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><button class="control-btn" data-key="left">←</button></td>
+                <td></td>
+                <td><button class="control-btn" data-key="right">→</button></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><button class="control-btn" data-key="down">↓</button></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    
+    <button id="jumpBtn" class="control-btn">JUMP</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game state
+        let scene, camera, renderer;
+        let player, playerVelocity = new THREE.Vector3();
+        let playerMesh, hairMesh, dressBottom;
+        let gems = [], enemies = [], bombs = [], platforms = [], bridges = [];
+        let particles = [];
+        let score = 0, lives = 3, gameTime = 0, bestTime = localStorage.getItem('bestTime') || Infinity;
+        let isGameOver = false, hasWon = false;
+        let totalGems = 0, collectedGems = 0;
+        let musicEnabled = true;
+        let musicInterval;
+        let currentLevel = 1;
+        let levelTimer = 0;
+        let levelTimeLimit = 300; // 5 minutes for level 1
+        let levelStartTime = Date.now();
+        let keys = {}, mobileControls = {};
+        let canJump = false, doubleJumpAvailable = false;
+        let isOnGround = false;
+        let clock = new THREE.Clock();
+        let dayNightCycle = 0;
+        let mouseX = 0, mouseY = 0;
+        let leftEye, rightEye;
+        let startTime = Date.now();
+        let animationFrame = 0;
+        
+        // Physics constants
+        const GRAVITY = -0.04;
+        const JUMP_FORCE = 0.68;
+        const MOVE_SPEED = 0.26;
+        const MAX_FALL_SPEED = -1.5;
+        
+        // Audio context
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Initialize
+        function init() {
+            setupScene();
+            createWorld();
+            createPlayer();
+            createEnemies();
+            createBombs();
+            createGems();
+            createWorldBoundaries();
+            setupEventListeners();
+            updateLivesDisplay();
+            
+            // Count total gems and set level timer
+            setTimeout(() => {
+                totalGems = gems.length;
+                document.getElementById('score').textContent = `Score: 0 | Gems: 0/${totalGems}`;
+                document.getElementById('levelDisplay').textContent = currentLevel;
+                
+                // Set time limit based on level
+                levelTimeLimit = currentLevel === 1 ? 300 : currentLevel === 2 ? 240 : 180;
+                levelStartTime = Date.now();
+            }, 100);
+            
+            if (bestTime !== Infinity) {
+                document.getElementById('bestTimeDisplay').textContent = formatTime(parseFloat(bestTime));
+            }
+            
+            if ('ontouchstart' in window) {
+                document.getElementById('mobileControls').style.display = 'block';
+                document.getElementById('jumpBtn').style.display = 'block';
+                setupMobileControls();
+            }
+            
+            playBackgroundMusic();
+            animate();
+        }
+        
+        // Setup scene
+        function setupScene() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x87CEEB, 20, 150);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 15, 25);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -100;
+            directionalLight.shadow.camera.right = 100;
+            directionalLight.shadow.camera.top = 100;
+            directionalLight.shadow.camera.bottom = -100;
+            directionalLight.shadow.camera.near = 0.1;
+            directionalLight.shadow.camera.far = 200;
+            directionalLight.shadow.mapSize.width = 4096;
+            directionalLight.shadow.mapSize.height = 4096;
+            scene.add(directionalLight);
+            
+            // Hemisphere light for better ambient
+            const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x228B22, 0.3);
+            scene.add(hemiLight);
+        }
+        
+        // Create world with proper collision platforms
+        function createWorld() {
+            // Main platform
+            const mainPlatform = createPlatform(40, 2, 40, 0, -1, 0, 0x3CB371);
+            platforms.push(mainPlatform);
+            
+            // Floating platforms at different heights with stepping stones
+            const platformPositions = [
+                // Lower platforms (easy to reach)
+                { x: 15, y: 3, z: 0, width: 10, height: 2, depth: 10 },
+                { x: -15, y: 4, z: 10, width: 10, height: 2, depth: 10 },
+                { x: 0, y: 5, z: -15, width: 8, height: 2, depth: 8 },
+                
+                // Medium height platforms
+                { x: 30, y: 7, z: 0, width: 12, height: 2, depth: 12 },
+                { x: -30, y: 8, z: 10, width: 12, height: 2, depth: 12 },
+                { x: 10, y: 9, z: 20, width: 10, height: 2, depth: 10 },
+                
+                // High platforms (need double jump or stepping stones)
+                { x: 0, y: 12, z: -30, width: 10, height: 2, depth: 10 },
+                { x: 20, y: 14, z: 25, width: 8, height: 2, depth: 8 },
+                { x: -20, y: 11, z: -20, width: 12, height: 2, depth: 12 },
+                
+                // Very high platforms
+                { x: 45, y: 16, z: -10, width: 10, height: 2, depth: 10 },
+                { x: -45, y: 15, z: 30, width: 10, height: 2, depth: 10 },
+                
+                // Stepping stone platforms to help reach higher areas
+                { x: 8, y: 2, z: -8, width: 4, height: 1, depth: 4 },
+                { x: 5, y: 8, z: -22, width: 4, height: 1, depth: 4 },
+                { x: 37, y: 4, z: -5, width: 4, height: 1, depth: 4 },
+                { x: 40, y: 10, z: -8, width: 4, height: 1, depth: 4 }
+            ];
+            
+            platformPositions.forEach((pos, index) => {
+                const platform = createPlatform(
+                    pos.width, pos.height, pos.depth,
+                    pos.x, pos.y, pos.z,
+                    new THREE.Color().setHSL((index * 0.1) % 1, 0.6, 0.5).getHex()
+                );
+                platforms.push(platform);
+                
+                // Add decorations
+                if (Math.random() > 0.5) {
+                    const tree = createStylizedTree();
+                    tree.position.set(
+                        pos.x + (Math.random() - 0.5) * pos.width * 0.6,
+                        pos.y + pos.height / 2,
+                        pos.z + (Math.random() - 0.5) * pos.depth * 0.6
+                    );
+                    scene.add(tree);
+                }
+            });
+            
+            // Rainbow bridges
+            createRainbowBridges();
+            
+            // Clouds
+            for (let i = 0; i < 12; i++) {
+                const cloud = createStylizedCloud();
+                cloud.position.set(
+                    Math.random() * 120 - 60,
+                    Math.random() * 20 + 25,
+                    Math.random() * 120 - 60
+                );
+                scene.add(cloud);
+            }
+            
+            // Waterfall with secret area
+            createWaterfallArea();
+            
+            // Decorative elements
+            createDecorations();
+        }
+        
+        // Create platform with collision bounds
+        function createPlatform(width, height, depth, x, y, z, color) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: color,
+                shininess: 100,
+                specular: 0x222222
+            });
+            const platform = new THREE.Mesh(geometry, material);
+            platform.position.set(x, y, z);
+            platform.castShadow = true;
+            platform.receiveShadow = true;
+            
+            // Store bounds for collision
+            platform.userData = {
+                type: 'platform',
+                bounds: {
+                    minX: x - width/2,
+                    maxX: x + width/2,
+                    minY: y - height/2,
+                    maxY: y + height/2,
+                    minZ: z - depth/2,
+                    maxZ: z + depth/2
+                }
+            };
+            
+            scene.add(platform);
+            return platform;
+        }
+        
+        // Create stylized tree
+        function createStylizedTree() {
+            const tree = new THREE.Group();
+            
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 4, 8);
+            const trunkMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x8B4513,
+                shininess: 30
+            });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 2;
+            trunk.castShadow = true;
+            tree.add(trunk);
+            
+            // Leaves layers
+            const leafColors = [0x228B22, 0x32CD32, 0x00FF00];
+            for (let i = 0; i < 3; i++) {
+                const leavesGeometry = new THREE.ConeGeometry(2.5 - i * 0.5, 2, 8);
+                const leavesMaterial = new THREE.MeshPhongMaterial({ 
+                    color: leafColors[i],
+                    shininess: 60
+                });
+                const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+                leaves.position.y = 5 + i * 1.5;
+                leaves.castShadow = true;
+                tree.add(leaves);
+            }
+            
+            return tree;
+        }
+        
+        // Create stylized cloud
+        function createStylizedCloud() {
+            const cloud = new THREE.Group();
+            
+            const spherePositions = [
+                { x: 0, y: 0, z: 0, r: 2 },
+                { x: 1.5, y: 0.5, z: 0, r: 1.8 },
+                { x: -1.5, y: 0.3, z: 0.5, r: 1.6 },
+                { x: 0, y: -0.5, z: -0.5, r: 1.4 },
+                { x: 2.5, y: 0, z: 0.5, r: 1.2 }
+            ];
+            
+            spherePositions.forEach(pos => {
+                const geometry = new THREE.SphereGeometry(pos.r, 8, 6);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0xFFFFFF,
+                    opacity: 0.9,
+                    transparent: true,
+                    emissive: 0xFFFFFF,
+                    emissiveIntensity: 0.1
+                });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(pos.x, pos.y, pos.z);
+                cloud.add(sphere);
+            });
+            
+            return cloud;
+        }
+        
+        // Create rainbow bridges
+        function createRainbowBridges() {
+            const bridgeConnections = [
+                { start: { x: 15, y: 0, z: 0 }, end: { x: 30, y: 5, z: 0 } },
+                { start: { x: -15, y: 0, z: 5 }, end: { x: -30, y: 8, z: 10 } },
+                { start: { x: 0, y: 0, z: -15 }, end: { x: 0, y: 12, z: -30 } }
+            ];
+            
+            bridgeConnections.forEach(conn => {
+                createRainbowBridge(
+                    new THREE.Vector3(conn.start.x, conn.start.y, conn.start.z),
+                    new THREE.Vector3(conn.end.x, conn.end.y, conn.end.z)
+                );
+            });
+        }
+        
+        // Create rainbow bridge with collision
+        function createRainbowBridge(start, end) {
+            const midPoint = new THREE.Vector3().lerpVectors(start, end, 0.5);
+            midPoint.y += 8;
+            
+            const curve = new THREE.QuadraticBezierCurve3(start, midPoint, end);
+            const points = curve.getPoints(20);
+            
+            // Create solid walkable segments
+            for (let i = 0; i < points.length - 1; i++) {
+                const segmentStart = points[i];
+                const segmentEnd = points[i + 1];
+                const segmentCenter = new THREE.Vector3().lerpVectors(segmentStart, segmentEnd, 0.5);
+                const segmentLength = segmentStart.distanceTo(segmentEnd);
+                
+                // Create platform segment
+                const segmentGeometry = new THREE.BoxGeometry(3, 1, segmentLength + 1);
+                const rainbowColor = new THREE.Color().setHSL(i / points.length, 1, 0.5);
+                const segmentMaterial = new THREE.MeshPhongMaterial({ 
+                    color: rainbowColor,
+                    emissive: rainbowColor,
+                    emissiveIntensity: 0.3,
+                    shininess: 100
+                });
+                const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
+                
+                // Position and rotate segment
+                segment.position.copy(segmentCenter);
+                segment.lookAt(segmentEnd);
+                segment.rotateX(Math.PI / 2);
+                
+                // Add collision data - improved bounds calculation
+                const halfWidth = 1.8;  // Wider for better stability
+                const halfHeight = 0.6; // Thicker for better collision
+                
+                // Calculate proper bounds for the bridge segment
+                segment.userData = {
+                    type: 'bridge',
+                    bounds: {
+                        minX: segmentCenter.x - halfWidth,
+                        maxX: segmentCenter.x + halfWidth,
+                        minY: segmentCenter.y - halfHeight,
+                        maxY: segmentCenter.y + halfHeight,
+                        minZ: segmentCenter.z - halfWidth,
+                        maxZ: segmentCenter.z + halfWidth
+                    }
+                };
+                
+                platforms.push(segment);
+                bridges.push(segment);
+                segment.castShadow = true;
+                segment.receiveShadow = true;
+                scene.add(segment);
+            }
+            
+            // Add rainbow glow effect
+            const colors = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x4B0082, 0x9400D3];
+            colors.forEach((color, i) => {
+                const glowGeometry = new THREE.TubeGeometry(curve, 30, 0.8 - i * 0.08, 8, false);
+                const glowMaterial = new THREE.MeshBasicMaterial({ 
+                    color: color,
+                    opacity: 0.2,
+                    transparent: true
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                glow.position.y = i * 0.1;
+                scene.add(glow);
+            });
+        }
+        
+        // Create waterfall area
+        function createWaterfallArea() {
+            // Rock wall
+            const wallGeometry = new THREE.BoxGeometry(12, 20, 4);
+            const wallMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x696969,
+                roughness: 0.8
+            });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(-35, 10, -25);
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            scene.add(wall);
+            
+            // Water particles
+            for (let i = 0; i < 100; i++) {
+                const waterGeometry = new THREE.SphereGeometry(0.2, 4, 4);
+                const waterMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x4169E1,
+                    opacity: 0.6,
+                    transparent: true,
+                    emissive: 0x4169E1,
+                    emissiveIntensity: 0.3
+                });
+                const water = new THREE.Mesh(waterGeometry, waterMaterial);
+                water.position.set(
+                    -35 + Math.random() * 2 - 1,
+                    20 - Math.random() * 20,
+                    -24 + Math.random() * 2
+                );
+                water.userData = { 
+                    type: 'water',
+                    velocity: new THREE.Vector3(0, -0.5, 0)
+                };
+                scene.add(water);
+            }
+            
+            // Hidden platform behind waterfall
+            const secretPlatform = createPlatform(8, 2, 6, -35, 8, -28, 0x4B0082);
+            platforms.push(secretPlatform);
+            
+            // Bonus gems in waterfall (based on level)
+            const bonusGemCount = currentLevel === 1 ? 2 : currentLevel === 2 ? 3 : 5;
+            for (let i = 0; i < bonusGemCount; i++) {
+                const gem = createGem(0xFFD700);
+                gem.position.set(
+                    -35 + Math.random() * 6 - 3,
+                    9 + Math.random() * 2,
+                    -28 + Math.random() * 4 - 2
+                );
+                gem.userData.isBonus = true;
+                gem.userData.value = 5;
+                gems.push(gem);
+                scene.add(gem);
+            }
+        }
+        
+        // Create decorations
+        function createDecorations() {
+            // Flowers
+            for (let i = 0; i < 30; i++) {
+                const flower = createFlower();
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 18 + 2;
+                flower.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+                scene.add(flower);
+            }
+            
+            // Rocks
+            for (let i = 0; i < 20; i++) {
+                const rockGeometry = new THREE.DodecahedronGeometry(Math.random() * 1.5 + 0.5, 0);
+                const rockMaterial = new THREE.MeshPhongMaterial({ 
+                    color: new THREE.Color().setHSL(0, 0, Math.random() * 0.3 + 0.3),
+                    flatShading: true
+                });
+                const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 35;
+                rock.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+                rock.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+                rock.castShadow = true;
+                rock.receiveShadow = true;
+                scene.add(rock);
+            }
+        }
+        
+        // Create flower
+        function createFlower() {
+            const flower = new THREE.Group();
+            
+            // Stem
+            const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1);
+            const stemMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 0.5;
+            flower.add(stem);
+            
+            // Petals
+            const petalColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.7);
+            for (let i = 0; i < 6; i++) {
+                const petalGeometry = new THREE.SphereGeometry(0.2, 4, 2);
+                const petalMaterial = new THREE.MeshPhongMaterial({ color: petalColor });
+                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+                const angle = (i / 6) * Math.PI * 2;
+                petal.position.set(
+                    Math.cos(angle) * 0.3,
+                    1,
+                    Math.sin(angle) * 0.3
+                );
+                petal.scale.set(1.5, 1, 1);
+                flower.add(petal);
+            }
+            
+            // Center
+            const centerGeometry = new THREE.SphereGeometry(0.15, 6, 6);
+            const centerMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFF00 });
+            const center = new THREE.Mesh(centerGeometry, centerMaterial);
+            center.position.y = 1;
+            flower.add(center);
+            
+            return flower;
+        }
+        
+        // Create player (girl character)
+        function createPlayer() {
+            player = new THREE.Group();
+            
+            // Body (using cylinder instead of capsule for compatibility)
+            const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.6, 1.8, 8);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFB6C1,
+                shininess: 100
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0;
+            body.castShadow = true;
+            player.add(body);
+            
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.6, 8, 8);
+            const headMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFDBCC,
+                shininess: 50
+            });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 1.5;
+            head.castShadow = true;
+            player.add(head);
+            
+            // Hair
+            const hairGeometry = new THREE.SphereGeometry(0.7, 8, 6);
+            const hairMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x8B4513,
+                shininess: 80
+            });
+            hairMesh = new THREE.Mesh(hairGeometry, hairMaterial);
+            hairMesh.position.y = 1.6;
+            hairMesh.scale.set(1.1, 1, 1.1);
+            player.add(hairMesh);
+            
+            // Ponytail
+            const ponytailGeometry = new THREE.SphereGeometry(0.3, 6, 6);
+            const ponytail = new THREE.Mesh(ponytailGeometry, hairMaterial);
+            ponytail.position.set(0, 1.5, -0.5);
+            ponytail.scale.set(1, 1.5, 1);
+            player.add(ponytail);
+            
+            // Eyes
+            leftEye = createEye(-0.2, 1.5, 0.5);
+            rightEye = createEye(0.2, 1.5, 0.5);
+            player.add(leftEye);
+            player.add(rightEye);
+            
+            // Dress
+            const dressTopGeometry = new THREE.ConeGeometry(0.8, 1.2, 8);
+            const dressMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFF69B4,
+                shininess: 60
+            });
+            const dressTop = new THREE.Mesh(dressTopGeometry, dressMaterial);
+            dressTop.position.y = -0.2;
+            dressTop.castShadow = true;
+            player.add(dressTop);
+            
+            // Dress bottom (for animation)
+            const dressBottomGeometry = new THREE.ConeGeometry(1, 0.8, 8);
+            dressBottom = new THREE.Mesh(dressBottomGeometry, dressMaterial);
+            dressBottom.position.y = -0.8;
+            dressBottom.castShadow = true;
+            player.add(dressBottom);
+            
+            // Arms
+            for (let side of [-1, 1]) {
+                const armGeometry = new THREE.CylinderGeometry(0.12, 0.15, 0.8, 6);
+                const arm = new THREE.Mesh(armGeometry, headMaterial);
+                arm.position.set(side * 0.7, 0.2, 0);
+                arm.rotation.z = side * 0.3;
+                arm.castShadow = true;
+                player.add(arm);
+            }
+            
+            // Legs
+            for (let side of [-0.3, 0.3]) {
+                const legGeometry = new THREE.CylinderGeometry(0.15, 0.2, 0.8, 6);
+                const legMaterial = new THREE.MeshPhongMaterial({ color: 0xFFDBCC });
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+                leg.position.set(side, -1.5, 0);
+                leg.castShadow = true;
+                player.add(leg);
+            }
+            
+            player.position.set(0, 4, 0);
+            playerMesh = player;
+            scene.add(player);
+        }
+        
+        // Create eye
+        function createEye(x, y, z) {
+            const eye = new THREE.Group();
+            
+            // White
+            const whiteGeometry = new THREE.SphereGeometry(0.15, 6, 6);
+            const whiteMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
+            const white = new THREE.Mesh(whiteGeometry, whiteMaterial);
+            eye.add(white);
+            
+            // Pupil
+            const pupilGeometry = new THREE.SphereGeometry(0.08, 6, 6);
+            const pupilMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+            pupil.position.z = 0.1;
+            eye.add(pupil);
+            
+            // Sparkle
+            const sparkleGeometry = new THREE.SphereGeometry(0.03, 4, 4);
+            const sparkleMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+            const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
+            sparkle.position.set(0.03, 0.03, 0.12);
+            eye.add(sparkle);
+            
+            eye.position.set(x, y, z);
+            return eye;
+        }
+        
+        // Create enemies based on level
+        function createEnemies() {
+            let enemyPositions = [];
+            
+            if (currentLevel === 1) {
+                // Level 1: Only 2 enemies
+                enemyPositions = [
+                    { x: 15, y: 4, z: 5, type: 'slime' },
+                    { x: -15, y: 5, z: -10, type: 'slime' }
+                ];
+            } else if (currentLevel === 2) {
+                // Level 2: 4 enemies
+                enemyPositions = [
+                    { x: 20, y: 4, z: 5, type: 'slime' },
+                    { x: -20, y: 6, z: 10, type: 'spike' },
+                    { x: 10, y: 2, z: -15, type: 'slime' },
+                    { x: -10, y: 10, z: -20, type: 'flying' }
+                ];
+            } else {
+                // Level 3: 6 enemies
+                enemyPositions = [
+                    { x: 25, y: 7, z: 5, type: 'slime' },
+                    { x: -25, y: 10, z: 15, type: 'spike' },
+                    { x: 10, y: 2, z: -20, type: 'slime' },
+                    { x: -15, y: 2, z: 10, type: 'spike' },
+                    { x: 40, y: 20, z: -5, type: 'flying' },
+                    { x: -40, y: 8, z: 25, type: 'flying' }
+                ];
+            }
+            
+            enemyPositions.forEach(pos => {
+                let enemy;
+                if (pos.type === 'slime') {
+                    enemy = createSlimeEnemy();
+                } else if (pos.type === 'spike') {
+                    enemy = createSpikeEnemy();
+                } else if (pos.type === 'flying') {
+                    enemy = createFlyingEnemy();
+                }
+                enemy.position.set(pos.x, pos.y, pos.z);
+                enemy.userData.startPos = { x: pos.x, y: pos.y, z: pos.z };
+                enemy.userData.movePattern = Math.random();
+                enemies.push(enemy);
+                scene.add(enemy);
+            });
+        }
+        
+        // Create slime enemy
+        function createSlimeEnemy() {
+            const enemy = new THREE.Group();
+            
+            const bodyGeometry = new THREE.SphereGeometry(0.8, 8, 6);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x00FF00,
+                shininess: 100,
+                emissive: 0x00FF00,
+                emissiveIntensity: 0.1
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.scale.y = 0.7;
+            body.castShadow = true;
+            enemy.add(body);
+            
+            // Evil eyes
+            for (let x of [-0.3, 0.3]) {
+                const eyeGeometry = new THREE.SphereGeometry(0.15, 6, 6);
+                const eyeMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFF0000,
+                    emissive: 0xFF0000,
+                    emissiveIntensity: 0.5
+                });
+                const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+                eye.position.set(x, 0.2, 0.7);
+                enemy.add(eye);
+            }
+            
+            enemy.userData = { type: 'slime', harmRadius: 1.5 };
+            return enemy;
+        }
+        
+        // Create spike enemy
+        function createSpikeEnemy() {
+            const enemy = new THREE.Group();
+            
+            const spikeGeometry = new THREE.ConeGeometry(0.5, 2, 4);
+            const spikeMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFF4500,
+                shininess: 150,
+                emissive: 0xFF4500,
+                emissiveIntensity: 0.2
+            });
+            
+            for (let i = 0; i < 6; i++) {
+                const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                const angle = (i / 6) * Math.PI * 2;
+                spike.position.set(
+                    Math.cos(angle) * 0.5,
+                    0,
+                    Math.sin(angle) * 0.5
+                );
+                spike.rotation.z = angle;
+                spike.castShadow = true;
+                enemy.add(spike);
+            }
+            
+            enemy.userData = { type: 'spike', harmRadius: 1.2 };
+            return enemy;
+        }
+        
+        // Create flying enemy
+        function createFlyingEnemy() {
+            const enemy = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.TetrahedronGeometry(0.8, 0);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x9400D3,
+                shininess: 100,
+                emissive: 0x9400D3,
+                emissiveIntensity: 0.3,
+                flatShading: true
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            enemy.add(body);
+            
+            // Wings
+            for (let side of [-1, 1]) {
+                const wingGeometry = new THREE.PlaneGeometry(1.5, 0.5);
+                const wingMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFF00FF,
+                    opacity: 0.6,
+                    transparent: true,
+                    side: THREE.DoubleSide,
+                    emissive: 0xFF00FF,
+                    emissiveIntensity: 0.2
+                });
+                const wing = new THREE.Mesh(wingGeometry, wingMaterial);
+                wing.position.set(side * 0.8, 0, 0);
+                wing.rotation.y = side * 0.5;
+                enemy.add(wing);
+            }
+            
+            enemy.userData = { type: 'flying', harmRadius: 1.3 };
+            return enemy;
+        }
+        
+        // Create bombs based on level
+        function createBombs() {
+            let bombPositions = [];
+            
+            if (currentLevel === 1) {
+                // Level 1: Only 1 bomb
+                bombPositions = [
+                    { x: 10, y: 2, z: -5 }
+                ];
+            } else if (currentLevel === 2) {
+                // Level 2: 3 bombs
+                bombPositions = [
+                    { x: 15, y: 2, z: -10 },
+                    { x: -20, y: 2, z: 5 },
+                    { x: 5, y: 9, z: 15 }
+                ];
+            } else {
+                // Level 3: 5 bombs
+                bombPositions = [
+                    { x: 15, y: 2, z: -10 },
+                    { x: -20, y: 2, z: 5 },
+                    { x: 30, y: 7, z: 10 },
+                    { x: -10, y: 2, z: -15 },
+                    { x: 5, y: 14, z: -30 }
+                ];
+            }
+            
+            bombPositions.forEach(pos => {
+                const bomb = createBomb();
+                bomb.position.set(pos.x, pos.y, pos.z);
+                bombs.push(bomb);
+                scene.add(bomb);
+            });
+        }
+        
+        // Create bomb
+        function createBomb() {
+            const bomb = new THREE.Group();
+            
+            // Body
+            const bodyGeometry = new THREE.SphereGeometry(0.8, 8, 8);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x222222,
+                shininess: 150,
+                emissive: 0x111111,
+                emissiveIntensity: 0.2
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.castShadow = true;
+            bomb.add(body);
+            
+            // Fuse
+            const fuseGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5);
+            const fuseMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+            const fuse = new THREE.Mesh(fuseGeometry, fuseMaterial);
+            fuse.position.y = 0.6;
+            bomb.add(fuse);
+            
+            // Spark
+            const sparkGeometry = new THREE.SphereGeometry(0.2, 4, 4);
+            const sparkMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xFF4500,
+                emissive: 0xFF4500,
+                emissiveIntensity: 1
+            });
+            const spark = new THREE.Mesh(sparkGeometry, sparkMaterial);
+            spark.position.y = 0.9;
+            bomb.add(spark);
+            
+            bomb.userData = { 
+                type: 'bomb',
+                harmRadius: 2,
+                timer: Math.random() * 3
+            };
+            
+            return bomb;
+        }
+        
+        // Create gem
+        function createGem(color) {
+            const gem = new THREE.Group();
+            
+            const geometry = new THREE.OctahedronGeometry(0.5);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: color || [0xFFFF00, 0xFF69B4, 0x00BFFF][Math.floor(Math.random() * 3)],
+                shininess: 150,
+                specular: 0xFFFFFF
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            gem.add(mesh);
+            
+            // Inner glow
+            const glowGeometry = new THREE.OctahedronGeometry(0.3);
+            const glowMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xFFFFFF,
+                opacity: 0.8,
+                transparent: true
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            gem.add(glow);
+            
+            // Outer glow
+            const outerGlowGeometry = new THREE.OctahedronGeometry(0.8);
+            const outerGlowMaterial = new THREE.MeshBasicMaterial({ 
+                color: material.color,
+                opacity: 0.2,
+                transparent: true
+            });
+            const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+            gem.add(outerGlow);
+            
+            gem.userData = { type: 'gem', value: 1 };
+            
+            return gem;
+        }
+        
+        // Create gems based on level
+        function createGems() {
+            const gemCounts = {
+                1: 8,  // Level 1: 8 gems (easy to collect in 5 mins)
+                2: 12, // Level 2: 12 gems (moderate in 4 mins)
+                3: 18  // Level 3: 18 gems (challenging in 3 mins)
+            };
+            
+            const gemCount = gemCounts[currentLevel] || 8;
+            
+            // Regular gems scattered around
+            for (let i = 0; i < gemCount; i++) {
+                const gem = createGem();
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 30 + 5;
+                gem.position.set(
+                    Math.cos(angle) * radius,
+                    Math.random() * 3 + 1,
+                    Math.sin(angle) * radius
+                );
+                gems.push(gem);
+                scene.add(gem);
+            }
+            
+            // Gems on platforms based on level
+            const platformGemChance = currentLevel === 1 ? 0.7 : currentLevel === 2 ? 0.5 : 0.3;
+            platforms.forEach((platform, index) => {
+                if (index < 5 && Math.random() > platformGemChance) {
+                    const gemCount = 1;
+                    for (let i = 0; i < gemCount; i++) {
+                        const gem = createGem();
+                        gem.position.set(
+                            platform.position.x + (Math.random() - 0.5) * 5,
+                            platform.position.y + 2,
+                            platform.position.z + (Math.random() - 0.5) * 5
+                        );
+                        gems.push(gem);
+                        scene.add(gem);
+                    }
+                }
+            });
+        }
+        
+        // Particle effects
+        function createParticleTrail(position, color) {
+            for (let i = 0; i < 3; i++) {
+                const particleGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+                const particleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: color || new THREE.Color().setHSL(Math.random(), 1, 0.6),
+                    opacity: 1,
+                    transparent: true
+                });
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(position);
+                particle.position.y -= 1;
+                particle.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.2,
+                    Math.random() * 0.1,
+                    (Math.random() - 0.5) * 0.2
+                );
+                particle.life = 1;
+                particles.push(particle);
+                scene.add(particle);
+            }
+        }
+        
+        // Create explosion particles
+        function createExplosion(position, color, count = 30) {
+            for (let i = 0; i < count; i++) {
+                const particleGeometry = new THREE.SphereGeometry(0.2, 4, 4);
+                const particleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: color,
+                    opacity: 1,
+                    transparent: true
+                });
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(position);
+                particle.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 1,
+                    Math.random() * 1,
+                    (Math.random() - 0.5) * 1
+                );
+                particle.life = 1;
+                particles.push(particle);
+                scene.add(particle);
+            }
+        }
+        
+        // Sound effects
+        function playCollectionSound() {
+            if (!musicEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1046.50, audioContext.currentTime + 0.15);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+        
+        function playJumpSound() {
+            if (!musicEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+        
+        function playHurtSound() {
+            if (!musicEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+        
+        function playExplosionSound() {
+            if (!musicEnabled) return;
+            
+            const noise = audioContext.createBufferSource();
+            const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.5, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            noise.buffer = buffer;
+            
+            const gainNode = audioContext.createGain();
+            noise.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            noise.start(audioContext.currentTime);
+        }
+        
+        // Toggle music
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            const button = document.getElementById('musicToggle');
+            if (musicEnabled) {
+                button.textContent = '🎵';
+                button.classList.remove('muted');
+                playBackgroundMusic();
+            } else {
+                button.textContent = '🔇';
+                button.classList.add('muted');
+                if (musicInterval) {
+                    clearInterval(musicInterval);
+                }
+            }
+        }
+        
+        // Background music
+        function playBackgroundMusic() {
+            if (musicInterval) clearInterval(musicInterval);
+            
+            const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+            let noteIndex = 0;
+            let measureCount = 0;
+            
+            musicInterval = setInterval(() => {
+                if (!isGameOver && !hasWon && musicEnabled) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = measureCount % 4 === 0 ? 'sine' : 'triangle';
+                    oscillator.frequency.setValueAtTime(notes[noteIndex], audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 1.5);
+                    
+                    noteIndex = (noteIndex + 1) % notes.length;
+                    if (noteIndex === 0) measureCount++;
+                }
+            }, 250);
+        }
+        
+        // Play victory fanfare
+        function playVictoryFanfare() {
+            if (!musicEnabled) return;
+            
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((note, i) => {
+                setTimeout(() => {
+                    if (!musicEnabled) return;
+                    
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(note, audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }, i * 200);
+            });
+        }
+        
+        // Event listeners
+        function setupEventListeners() {
+            document.addEventListener('keydown', (e) => {
+                if (!isGameOver) {
+                    keys[e.key.toLowerCase()] = true;
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                        jump();
+                    }
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        // Mobile controls
+        function setupMobileControls() {
+            const buttons = document.querySelectorAll('.control-btn');
+            
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const key = button.getAttribute('data-key');
+                    if (key) {
+                        mobileControls[key] = true;
+                    }
+                });
+                
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const key = button.getAttribute('data-key');
+                    if (key) {
+                        mobileControls[key] = false;
+                    }
+                });
+            });
+            
+            document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!isGameOver) jump();
+            });
+        }
+        
+        // Jump
+        function jump() {
+            if (isOnGround || canJump) {
+                playerVelocity.y = JUMP_FORCE;
+                isOnGround = false;
+                canJump = false;
+                doubleJumpAvailable = true;
+                playJumpSound();
+            } else if (doubleJumpAvailable) {
+                playerVelocity.y = JUMP_FORCE * 0.85;
+                doubleJumpAvailable = false;
+                playJumpSound();
+            }
+        }
+        
+        // Check platform collision
+        function checkPlatformCollision() {
+            const playerBottom = player.position.y - 1.8;
+            const playerTop = player.position.y + 1.8;
+            const playerRadius = 0.6; // Slightly larger for better edge detection
+            let onAnyPlatform = false;
+            let closestPlatformTop = -Infinity;
+            
+            // First pass: Find the platform we should be standing on
+            for (let platform of platforms) {
+                const bounds = platform.userData.bounds;
+                
+                // More accurate horizontal bounds check
+                const withinX = player.position.x + playerRadius > bounds.minX && 
+                               player.position.x - playerRadius < bounds.maxX;
+                const withinZ = player.position.z + playerRadius > bounds.minZ && 
+                               player.position.z - playerRadius < bounds.maxZ;
+                
+                if (withinX && withinZ) {
+                    const platformTop = bounds.maxY;
+                    
+                    // Check if we're above or landing on this platform
+                    if (playerBottom <= platformTop + 0.8 && playerBottom >= platformTop - 0.5 && playerVelocity.y <= 0) {
+                        if (platformTop > closestPlatformTop) {
+                            closestPlatformTop = platformTop;
+                        }
+                    }
+                }
+            }
+            
+            // Second pass: Apply collision detection
+            for (let platform of platforms) {
+                const bounds = platform.userData.bounds;
+                
+                // Use tighter bounds for actual collision
+                const collisionRadius = 0.5;
+                const withinX = player.position.x + collisionRadius > bounds.minX && 
+                               player.position.x - collisionRadius < bounds.maxX;
+                const withinZ = player.position.z + collisionRadius > bounds.minZ && 
+                               player.position.z - collisionRadius < bounds.maxZ;
+                
+                if (withinX && withinZ) {
+                    const platformTop = bounds.maxY;
+                    const platformBottom = bounds.minY;
+                    
+                    // 1. Landing on platform - most important check
+                    if (Math.abs(platformTop - closestPlatformTop) < 0.1 && 
+                        playerBottom <= platformTop + 0.8 && 
+                        playerVelocity.y <= 0) {
+                        
+                        // Snap to platform surface
+                        player.position.y = platformTop + 1.8;
+                        playerVelocity.y = 0;
+                        isOnGround = true;
+                        canJump = true;
+                        doubleJumpAvailable = true;
+                        onAnyPlatform = true;
+                    }
+                    // 2. Hitting platform from below
+                    else if (playerTop > platformBottom && 
+                             playerTop < platformBottom + 0.8 && 
+                             playerVelocity.y > 0) {
+                        // Hit ceiling
+                        player.position.y = platformBottom - 1.8;
+                        playerVelocity.y = -0.1;
+                    }
+                    // 3. Side collision - improved to prevent getting stuck
+                    else if (playerBottom < platformTop - 0.5 && 
+                             playerTop > platformBottom + 0.5 && 
+                             !onAnyPlatform) {
+                        
+                        // Calculate distances to edges
+                        const leftDist = player.position.x - bounds.minX;
+                        const rightDist = bounds.maxX - player.position.x;
+                        const frontDist = player.position.z - bounds.minZ;
+                        const backDist = bounds.maxZ - player.position.z;
+                        
+                        // Find minimum distance
+                        const minDist = Math.min(leftDist, rightDist, frontDist, backDist);
+                        
+                        // Push out from the nearest edge smoothly
+                        const pushForce = 0.3;
+                        if (minDist === leftDist && leftDist < collisionRadius) {
+                            player.position.x = bounds.minX - collisionRadius;
+                            if (playerVelocity.x > 0) playerVelocity.x = 0;
+                        } else if (minDist === rightDist && rightDist < collisionRadius) {
+                            player.position.x = bounds.maxX + collisionRadius;
+                            if (playerVelocity.x < 0) playerVelocity.x = 0;
+                        } else if (minDist === frontDist && frontDist < collisionRadius) {
+                            player.position.z = bounds.minZ - collisionRadius;
+                            if (playerVelocity.z > 0) playerVelocity.z = 0;
+                        } else if (minDist === backDist && backDist < collisionRadius) {
+                            player.position.z = bounds.maxZ + collisionRadius;
+                            if (playerVelocity.z < 0) playerVelocity.z = 0;
+                        }
+                    }
+                }
+            }
+            
+            // Stable ground check with better edge tolerance
+            if (onAnyPlatform) {
+                let stillOnPlatform = false;
+                const edgeTolerance = 0.3; // Allow player to be slightly off the edge
+                
+                for (let platform of platforms) {
+                    const bounds = platform.userData.bounds;
+                    const onThisPlatform = 
+                        player.position.x >= bounds.minX - edgeTolerance && 
+                        player.position.x <= bounds.maxX + edgeTolerance &&
+                        player.position.z >= bounds.minZ - edgeTolerance && 
+                        player.position.z <= bounds.maxZ + edgeTolerance &&
+                        Math.abs(playerBottom - bounds.maxY) < 0.5;
+                    
+                    if (onThisPlatform) {
+                        stillOnPlatform = true;
+                        // Keep player grounded on platform
+                        player.position.y = bounds.maxY + 1.8;
+                        playerVelocity.y = Math.min(playerVelocity.y, 0);
+                        break;
+                    }
+                }
+                
+                isOnGround = stillOnPlatform;
+                if (!stillOnPlatform) {
+                    canJump = false;
+                }
+            }
+            
+            return onAnyPlatform;
+        }
+        
+        // Take damage
+        function takeDamage() {
+            if (Date.now() - (player.lastDamageTime || 0) < 1500) return; // Invulnerability period
+            
+            lives--;
+            player.lastDamageTime = Date.now();
+            updateLivesDisplay();
+            playHurtSound();
+            
+            // Red flash effect
+            player.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    const originalColor = child.material.color.getHex();
+                    child.material.color.setHex(0xFF0000);
+                    setTimeout(() => {
+                        child.material.color.setHex(originalColor);
+                    }, 200);
+                }
+            });
+            
+            createExplosion(player.position.clone(), 0xFF0000, 20);
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+        
+        // Update lives display
+        function updateLivesDisplay() {
+            const livesDisplay = document.getElementById('livesDisplay');
+            livesDisplay.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                livesDisplay.innerHTML += '<span class="heart">❤️</span>';
+            }
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Game over
+        function gameOver() {
+            isGameOver = true;
+            
+            const finalTime = (Date.now() - startTime) / 1000;
+            
+            if (score > 0 && finalTime < bestTime) {
+                bestTime = finalTime;
+                localStorage.setItem('bestTime', bestTime);
+                document.getElementById('bestTime').textContent = `NEW BEST TIME: ${formatTime(bestTime)}!`;
+                document.getElementById('bestTime').style.color = '#FFD700';
+            } else {
+                document.getElementById('bestTime').textContent = `Best Time: ${formatTime(bestTime)}`;
+            }
+            
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            document.getElementById('gameOverScreen').style.display = 'block';
+            
+            playExplosionSound();
+        }
+        
+        // Win level
+        function winLevel() {
+            hasWon = true;
+            const finalTime = (Date.now() - levelStartTime) / 1000;
+            
+            if (currentLevel < 3) {
+                document.getElementById('winTitle').textContent = `🎉 LEVEL ${currentLevel} COMPLETE! 🎉`;
+                document.getElementById('winMessage').textContent = `Ready for Level ${currentLevel + 1}?`;
+                document.getElementById('continueBtn').textContent = `CONTINUE TO LEVEL ${currentLevel + 1}`;
+                document.getElementById('continueBtn').style.display = 'block';
+            } else {
+                document.getElementById('winTitle').textContent = '🏆 GAME COMPLETE! 🏆';
+                document.getElementById('winMessage').textContent = 'YOU ARE THE CHAMPION!';
+                document.getElementById('continueBtn').style.display = 'none';
+            }
+            
+            document.getElementById('winTime').textContent = `Time: ${formatTime(finalTime)}`;
+            document.getElementById('winScore').textContent = `Score: ${score}`;
+            document.getElementById('winScreen').style.display = 'block';
+            
+            playVictoryFanfare();
+            
+            // Create celebration particles
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const colors = [0xFFD700, 0xFF69B4, 0x00BFFF, 0xFF0000, 0x00FF00];
+                    createExplosion(
+                        new THREE.Vector3(
+                            player.position.x + (Math.random() - 0.5) * 20,
+                            player.position.y + Math.random() * 10,
+                            player.position.z + (Math.random() - 0.5) * 20
+                        ),
+                        colors[Math.floor(Math.random() * colors.length)],
+                        20
+                    );
+                }, i * 50);
+            }
+        }
+        
+        // Next level
+        function nextLevel() {
+            currentLevel++;
+            if (currentLevel > 3) currentLevel = 3;
+            
+            // Set time limits: Level 1 = 5 mins, Level 2 = 4 mins, Level 3 = 3 mins
+            levelTimeLimit = currentLevel === 1 ? 300 : currentLevel === 2 ? 240 : 180;
+            
+            // Reset level state
+            collectedGems = 0;
+            hasWon = false;
+            isGameOver = false;
+            levelStartTime = Date.now();
+            lives = 3;
+            
+            // Clear existing objects
+            gems.forEach(gem => scene.remove(gem));
+            enemies.forEach(enemy => scene.remove(enemy));
+            bombs.forEach(bomb => scene.remove(bomb));
+            gems = [];
+            enemies = [];
+            bombs = [];
+            
+            // Create new level objects
+            createGems();
+            createEnemies();
+            createBombs();
+            
+            // Update UI
+            document.getElementById('levelDisplay').textContent = currentLevel;
+            document.getElementById('winScreen').style.display = 'none';
+            setTimeout(() => {
+                totalGems = gems.length;
+                document.getElementById('score').textContent = `Score: ${score} | Gems: 0/${totalGems}`;
+            }, 100);
+            
+            updateLivesDisplay();
+            
+            // Reset player position
+            player.position.set(0, 4, 0);
+            playerVelocity.set(0, 0, 0);
+        }
+        
+        // Restart game
+        function restartGame() {
+            currentLevel = 1;
+            score = 0;
+            location.reload();
+        }
+        
+        // Create world boundaries
+        function createWorldBoundaries() {
+            const boundaryMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFF0000,
+                opacity: 0.3,
+                transparent: true,
+                emissive: 0xFF0000,
+                emissiveIntensity: 0.2
+            });
+            
+            const boundaryGeometry = new THREE.BoxGeometry(1, 30, 100);
+            
+            // Create 4 walls
+            const boundaries = [
+                { x: 50, z: 0 },
+                { x: -50, z: 0 },
+                { x: 0, z: 50, rotation: Math.PI / 2 },
+                { x: 0, z: -50, rotation: Math.PI / 2 }
+            ];
+            
+            boundaries.forEach(bound => {
+                const wall = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
+                wall.position.set(bound.x, 15, bound.z);
+                if (bound.rotation) wall.rotation.y = bound.rotation;
+                scene.add(wall);
+            });
+        }
+        
+        // Update
+        function update(deltaTime) {
+            if (isGameOver || hasWon) return;
+            
+            animationFrame++;
+            
+            // Update countdown timer
+            const elapsedTime = (Date.now() - levelStartTime) / 1000;
+            const timeLeft = levelTimeLimit - elapsedTime;
+            
+            if (timeLeft <= 0 && !hasWon) {
+                // Time's up!
+                isGameOver = true;
+                document.getElementById('gameOverTitle').textContent = "⏰ TIME'S UP! ⏰";
+                document.getElementById('finalScore').textContent = `Level ${currentLevel} - Score: ${score}`;
+                document.getElementById('gameOverScreen').style.display = 'block';
+                playExplosionSound();
+                return;
+            }
+            
+            document.getElementById('timer').textContent = `Time Left: ${formatTime(Math.max(0, timeLeft))}`;
+            
+            // Flash timer when low on time
+            if (timeLeft < 30) {
+                document.getElementById('timer').style.color = '#FF0000';
+            } else if (timeLeft < 60) {
+                document.getElementById('timer').style.color = '#FFA500';
+            } else {
+                document.getElementById('timer').style.color = '#FFD700';
+            }
+            
+            // Day/night cycle
+            dayNightCycle += deltaTime / 30;
+            const cycleValue = (Math.sin(dayNightCycle * Math.PI) + 1) / 2;
+            
+            const skyColor = new THREE.Color().lerpColors(
+                new THREE.Color(0x87CEEB),
+                new THREE.Color(0x000844),
+                1 - cycleValue
+            );
+            renderer.setClearColor(skyColor);
+            
+            scene.children.forEach(child => {
+                if (child instanceof THREE.DirectionalLight) {
+                    child.intensity = 0.4 + cycleValue * 0.4;
+                }
+                if (child instanceof THREE.AmbientLight) {
+                    child.intensity = 0.3 + cycleValue * 0.2;
+                }
+            });
+            
+            // Player movement
+            const moveVector = new THREE.Vector3();
+            
+            if (keys['w'] || keys['arrowup'] || mobileControls['up']) moveVector.z -= MOVE_SPEED;
+            if (keys['s'] || keys['arrowdown'] || mobileControls['down']) moveVector.z += MOVE_SPEED;
+            if (keys['a'] || keys['arrowleft'] || mobileControls['left']) moveVector.x -= MOVE_SPEED;
+            if (keys['d'] || keys['arrowright'] || mobileControls['right']) moveVector.x += MOVE_SPEED;
+            
+            // Store old position for collision recovery
+            const oldPosition = player.position.clone();
+            
+            // Apply horizontal movement first
+            player.position.x += moveVector.x;
+            player.position.z += moveVector.z;
+            
+            // Character animation
+            if (moveVector.length() > 0) {
+                // Walking animation
+                if (hairMesh) {
+                    hairMesh.position.y = 1.6 + Math.sin(animationFrame * 0.3) * 0.05;
+                }
+                if (dressBottom) {
+                    dressBottom.rotation.x = Math.sin(animationFrame * 0.3) * 0.1;
+                    dressBottom.rotation.z = Math.sin(animationFrame * 0.3) * 0.05;
+                }
+                
+                // Particle trail
+                if (Math.random() < 0.3) {
+                    createParticleTrail(player.position.clone(), 0xFFB6C1);
+                }
+                
+                // Face movement direction
+                if (Math.abs(moveVector.x) > Math.abs(moveVector.z)) {
+                    player.rotation.y = moveVector.x > 0 ? Math.PI / 2 : -Math.PI / 2;
+                } else if (moveVector.z !== 0) {
+                    player.rotation.y = moveVector.z > 0 ? Math.PI : 0;
+                }
+            }
+            
+            // Apply gravity with better integration
+            if (!isOnGround) {
+                playerVelocity.y += GRAVITY;
+                if (playerVelocity.y < MAX_FALL_SPEED) {
+                    playerVelocity.y = MAX_FALL_SPEED;
+                }
+            } else {
+                // When on ground, only apply minimal downward force to stay grounded
+                playerVelocity.y = Math.min(playerVelocity.y, -0.01);
+            }
+            
+            // Apply vertical velocity in smaller steps for better collision detection
+            const verticalSteps = Math.ceil(Math.abs(playerVelocity.y) / 0.5);
+            const stepVelocity = playerVelocity.y / verticalSteps;
+            
+            for (let i = 0; i < verticalSteps; i++) {
+                player.position.y += stepVelocity;
+                
+                // Check collision after each step
+                const colliding = checkPlatformCollision();
+                
+                // If we hit something, stop vertical movement
+                if (colliding && isOnGround) {
+                    break;
+                }
+            }
+            
+            // Main ground check
+            if (player.position.y < 1.8) {
+                player.position.y = 1.8;
+                playerVelocity.y = 0;
+                isOnGround = true;
+                canJump = true;
+                doubleJumpAvailable = true;
+            }
+            
+            // World bounds with visible barriers
+            const worldLimit = 50;
+            const oldX = player.position.x;
+            const oldZ = player.position.z;
+            
+            player.position.x = Math.max(-worldLimit, Math.min(worldLimit, player.position.x));
+            player.position.z = Math.max(-worldLimit, Math.min(worldLimit, player.position.z));
+            
+            // Bounce back effect when hitting boundary
+            if (player.position.x !== oldX || player.position.z !== oldZ) {
+                playerVelocity.x *= -0.5;
+                playerVelocity.z *= -0.5;
+                // Flash effect
+                renderer.setClearColor(0xFF0000, 0.1);
+                setTimeout(() => {
+                    renderer.setClearColor(skyColor);
+                }, 100);
+            }
+            
+            // Fall death
+            if (player.position.y < -20) {
+                takeDamage();
+                player.position.set(0, 6, 0);
+                playerVelocity.set(0, 0, 0);
+            }
+            
+            // Update googly eyes
+            if (leftEye && rightEye) {
+                const lookTarget = new THREE.Vector3(
+                    camera.position.x + mouseX * 20,
+                    camera.position.y + mouseY * 20,
+                    camera.position.z
+                );
+                leftEye.lookAt(lookTarget);
+                rightEye.lookAt(lookTarget);
+            }
+            
+            // Update gems
+            gems.forEach((gem, index) => {
+                gem.rotation.y += 0.03;
+                gem.position.y += Math.sin(Date.now() * 0.002 + index) * 0.01;
+                
+                // Collection
+                if (gem.position.distanceTo(player.position) < 2) {
+                    score += gem.userData.value || 1;
+                    collectedGems++;
+                    document.getElementById('score').textContent = `Score: ${score} | Gems: ${collectedGems}/${totalGems}`;
+                    createExplosion(gem.position.clone(), gem.children[0].material.color, 15);
+                    playCollectionSound();
+                    scene.remove(gem);
+                    gems.splice(index, 1);
+                    
+                    // Check win condition
+                    if (collectedGems >= totalGems && !hasWon) {
+                        winLevel();
+                    }
+                }
+            });
+            
+            // Update enemies
+            enemies.forEach(enemy => {
+                // Movement patterns
+                const time = Date.now() * 0.001;
+                
+                if (enemy.userData.type === 'slime') {
+                    enemy.position.y = enemy.userData.startPos.y + Math.sin(time * 2) * 0.5;
+                    enemy.position.x = enemy.userData.startPos.x + Math.sin(time + enemy.userData.movePattern * Math.PI) * 5;
+                    enemy.scale.y = 0.7 + Math.sin(time * 4) * 0.1;
+                } else if (enemy.userData.type === 'spike') {
+                    enemy.rotation.y += 0.05;
+                    enemy.position.z = enemy.userData.startPos.z + Math.sin(time * 1.5) * 8;
+                } else if (enemy.userData.type === 'flying') {
+                    enemy.position.x = enemy.userData.startPos.x + Math.sin(time) * 10;
+                    enemy.position.y = enemy.userData.startPos.y + Math.sin(time * 2) * 3;
+                    enemy.rotation.x = Math.sin(time * 3) * 0.2;
+                    
+                    // Flap wings
+                    enemy.children.forEach((child, i) => {
+                        if (child.geometry instanceof THREE.PlaneGeometry) {
+                            child.rotation.z = Math.sin(time * 8) * 0.3 * (i === 1 ? 1 : -1);
+                        }
+                    });
+                }
+                
+                // Collision with player
+                if (enemy.position.distanceTo(player.position) < enemy.userData.harmRadius) {
+                    takeDamage();
+                }
+            });
+            
+            // Update bombs
+            bombs.forEach(bomb => {
+                bomb.userData.timer += deltaTime;
+                
+                // Pulsing effect
+                const pulseScale = 1 + Math.sin(bomb.userData.timer * 10) * 0.1;
+                bomb.scale.setScalar(pulseScale);
+                
+                // Spark animation
+                if (bomb.children[2]) {
+                    bomb.children[2].scale.setScalar(0.8 + Math.random() * 0.4);
+                    bomb.children[2].material.emissiveIntensity = 0.5 + Math.random() * 0.5;
+                }
+                
+                // Collision with player
+                if (bomb.position.distanceTo(player.position) < bomb.userData.harmRadius) {
+                    takeDamage();
+                    createExplosion(bomb.position.clone(), 0xFF4500, 40);
+                    playExplosionSound();
+                }
+            });
+            
+            // Update particles
+            particles.forEach((particle, index) => {
+                particle.position.add(particle.velocity);
+                particle.velocity.y -= 0.01;
+                particle.life -= deltaTime * 2;
+                particle.material.opacity = particle.life;
+                particle.scale.setScalar(particle.life);
+                
+                if (particle.life <= 0) {
+                    scene.remove(particle);
+                    particles.splice(index, 1);
+                }
+            });
+            
+            // Update water particles
+            scene.traverse((child) => {
+                if (child.userData && child.userData.type === 'water') {
+                    child.position.add(child.userData.velocity);
+                    if (child.position.y < 0) {
+                        child.position.y = 20;
+                    }
+                }
+            });
+            
+            // Camera follow with smooth damping
+            const cameraOffset = new THREE.Vector3(0, 12, 20);
+            const desiredCameraPosition = player.position.clone().add(cameraOffset);
+            camera.position.lerp(desiredCameraPosition, 0.08);
+            
+            const lookAtPosition = player.position.clone();
+            lookAtPosition.y += 2;
+            camera.lookAt(lookAtPosition);
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = clock.getDelta();
+            update(deltaTime);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Start game
+        init();
+    </script>
+</body>
+</html>
